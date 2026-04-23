@@ -2972,6 +2972,20 @@ function getHomepageCards(login) {
 function renderHomepagePanel() {
   const login = getCurrentLogin();
   const cards = getHomepageCards(login);
+  const loginCards = state.loginDirectory
+    .map(
+      (person) => `
+        <button class="login-card" type="button" data-home-login-card="${person.name}">
+          <span class="avatar-chip">${person.avatar}</span>
+          <span class="login-card-copy">
+            <strong>${person.name}</strong>
+            <span>${person.role}</span>
+            <span>${person.microsoftEmail}</span>
+          </span>
+        </button>
+      `
+    )
+    .join("");
   homepagePanel.innerHTML = `
     <div class="homepage-header">
       <div>
@@ -2991,6 +3005,14 @@ function renderHomepagePanel() {
         )
         .join("")}
     </div>
+    <article class="login-panel homepage-user-panel">
+      <p class="eyebrow">User chooser</p>
+      <strong>Choose an AM account view</strong>
+      <p class="login-copy">Switch users here without a blocking sign-in screen. This keeps the sandbox accessible while preserving account-role demos.</p>
+      <div class="login-card-list">
+        ${loginCards}
+      </div>
+    </article>
   `;
 }
 
@@ -5537,6 +5559,19 @@ newAccountButton.addEventListener("click", () => {
   render();
   queueDashboardStateSync();
   showToast("New account created.");
+});
+
+homepagePanel.addEventListener("click", (event) => {
+  const loginTrigger = event.target.closest("[data-home-login-card]");
+  if (!loginTrigger) {
+    return;
+  }
+
+  state.selectedLogin = loginTrigger.dataset.homeLoginCard;
+  state.viewMode = "private";
+  state.selectedId = "all-accounts";
+  render();
+  showToast(`Viewing ${state.selectedLogin}.`);
 });
 
 resetLayoutButton.addEventListener("click", () => {

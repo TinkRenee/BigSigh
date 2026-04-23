@@ -418,6 +418,10 @@ button:hover {
   box-shadow: var(--shadow);
 }
 
+.homepage-user-panel {
+  margin-top: 20px;
+}
+
 .calendar-panel {
   margin-top: 16px;
 }
