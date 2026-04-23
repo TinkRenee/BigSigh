@@ -2889,6 +2889,10 @@ function renderLoginSummary() {
 }
 
 function renderLoginOverlay() {
+  if (!loginOverlay || !loginCardList) {
+    return;
+  }
+
   loginOverlay.classList.toggle("hidden", !state.loginOverlayOpen);
   loginCardList.innerHTML = state.loginDirectory
     .map(
@@ -2960,7 +2964,7 @@ function getHomepageCards(login) {
 
   return [
     { title: "Creator controls", detail: "You have full sandbox editing access plus both private and shared dashboard views." },
-    { title: "Presentation mode", detail: "Use the sign-in picker to mimic different users and show their role-shaped experience." },
+    { title: "Presentation mode", detail: "Use the account selector to move between AM experiences and show different role-shaped views." },
     { title: "Integration-ready", detail: "The current build is ready for future JIRA and eoilreports.com data connections." }
   ];
 }
@@ -2974,7 +2978,6 @@ function renderHomepagePanel() {
         <p class="eyebrow">Homepage</p>
         <h3>${login.role} home</h3>
       </div>
-      <button id="switch-user-button" class="secondary-button" type="button">Switch user</button>
     </div>
     <div class="homepage-grid">
       ${cards
@@ -5475,19 +5478,21 @@ loginSelect.addEventListener("change", () => {
   render();
 });
 
-loginCardList.addEventListener("click", (event) => {
-  const trigger = event.target.closest("[data-login-card]");
-  if (!trigger) {
-    return;
-  }
+if (loginCardList) {
+  loginCardList.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-login-card]");
+    if (!trigger) {
+      return;
+    }
 
-  state.selectedLogin = trigger.dataset.loginCard;
-  state.loginOverlayOpen = false;
-  state.viewMode = "private";
-  state.selectedId = "all-accounts";
-  render();
-  showToast(`Signed in as ${state.selectedLogin}.`);
-});
+    state.selectedLogin = trigger.dataset.loginCard;
+    state.loginOverlayOpen = false;
+    state.viewMode = "private";
+    state.selectedId = "all-accounts";
+    render();
+    showToast(`Signed in as ${state.selectedLogin}.`);
+  });
+}
 
 saveButton.addEventListener("click", () => {
   if (!getSelectedAccount() || state.viewMode === "shared") {
@@ -5532,16 +5537,6 @@ newAccountButton.addEventListener("click", () => {
   render();
   queueDashboardStateSync();
   showToast("New account created.");
-});
-
-homepagePanel.addEventListener("click", (event) => {
-  const trigger = event.target.closest("#switch-user-button");
-  if (!trigger) {
-    return;
-  }
-
-  state.loginOverlayOpen = true;
-  renderLoginOverlay();
 });
 
 resetLayoutButton.addEventListener("click", () => {
