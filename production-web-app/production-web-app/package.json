@@ -1,0 +1,15 @@
+{
+  "name": "am-dashboard-production-foundation",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Production-oriented foundation for the AM dashboard app.",
+  "scripts": {
+    "dev": "node src/server/index.js",
+    "start": "node src/server/index.js",
+    "check:server": "node --check src/server/index.js",
+    "check:client": "node --check src/client/app.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
