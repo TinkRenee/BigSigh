@@ -15,12 +15,64 @@ const DEFAULT_PANEL_ORDER = [
   "security"
 ];
 
+const SEEDED_ACCOUNT_DATA = [
+  { id: "acct-mi", company: "Motion Industries", mask: "MIPOWR", manager: "Marian Kiley" },
+  { id: "acct-voltagrid", company: "Voltagrid", mask: "846164", manager: "Mel Prieve" },
+  { id: "acct-meta", company: "Meta", mask: "273187", manager: "Mel Prieve" },
+  { id: "acct-komatsu", company: "Komatsu", mask: "KM", manager: "Sade Thomas" },
+  { id: "acct-uslubricants", company: "US Lubricants", mask: "USLUBE", manager: "Sasha Dennison" },
+  { id: "acct-oilanalyzers", company: "Oil Analyzers", mask: "OILANA", manager: "Sasha Dennison", contactName: "Ryan Lawry; Zach Austin" },
+  { id: "acct-jglubricants", company: "JG Lubricants", mask: "JGLUBR", manager: "Sasha Dennison", contactName: "Tom Johnson" },
+  { id: "acct-chevron", company: "Chevron", mask: "LUB", manager: "Sasha Dennison" },
+  { id: "acct-kubota", company: "Kubota", mask: "KUBONA", manager: "Prad Marur" }
+];
+
+const SEEDED_LOGIN_DIRECTORY = [
+  { name: "Marian Kiley", role: "Account Manager", primaryRegion: "NA", microsoftEmail: "marian.kiley@northstarops.test", avatar: "MK", calendarConnected: true, aiMode: "Account insights and AM prep", sharedAccess: true, accessibleAccountIds: ["acct-mi"] },
+  { name: "Curt Watson", role: "Account Manager", primaryRegion: "NA", microsoftEmail: "curt.watson@northstarops.test", avatar: "CW", calendarConnected: true, aiMode: "Whitespace review and follow-up suggestions", sharedAccess: true, accessibleAccountIds: [] },
+  { name: "Mel Prieve", role: "Account Manager", primaryRegion: "NA", microsoftEmail: "mel.prieve@northstarops.test", avatar: "MP", calendarConnected: true, aiMode: "Portfolio recap and spend monitoring", sharedAccess: true, accessibleAccountIds: ["acct-voltagrid", "acct-meta"] },
+  { name: "Sasha Dennison", role: "Account Manager", primaryRegion: "NA", microsoftEmail: "sasha.dennison@northstarops.test", avatar: "SD", calendarConnected: true, aiMode: "Renewal planning and customer notes", sharedAccess: true, accessibleAccountIds: ["acct-uslubricants", "acct-oilanalyzers", "acct-jglubricants", "acct-chevron"] },
+  { name: "Prad Marur", role: "Account Manager", primaryRegion: "NA", microsoftEmail: "prad.marur@northstarops.test", avatar: "PM", calendarConnected: true, aiMode: "Opportunity tracking and account planning", sharedAccess: true, accessibleAccountIds: ["acct-kubota"] },
+  { name: "Kelsie Miller", role: "Customer Engagement Manager", primaryRegion: "NA", microsoftEmail: "kelsie.miller@northstarops.test", avatar: "KM", calendarConnected: true, aiMode: "Engagement planning and meeting preparation", sharedAccess: true, accessibleAccountIds: ["acct-mi", "acct-voltagrid", "acct-meta", "acct-komatsu", "acct-uslubricants", "acct-oilanalyzers", "acct-jglubricants", "acct-chevron", "acct-kubota"] },
+  { name: "Sade Thomas", role: "Customer Engagement Specialist", primaryRegion: "NA", microsoftEmail: "sade.thomas@northstarops.test", avatar: "ST", calendarConnected: true, aiMode: "Engagement follow-up and action items", sharedAccess: true, accessibleAccountIds: ["acct-komatsu"] },
+  { name: "Rob Dixon", role: "Sales/Marketing", primaryRegion: "NA", microsoftEmail: "rob.dixon@northstarops.test", avatar: "RD", calendarConnected: true, aiMode: "Campaign coordination and account context", sharedAccess: true, accessibleAccountIds: [] },
+  { name: "Sarah DeWolf", role: "Sales/Marketing", primaryRegion: "NA", microsoftEmail: "sarah.dewolf@northstarops.test", avatar: "SD", calendarConnected: true, aiMode: "Pipeline messaging and launch planning", sharedAccess: true, accessibleAccountIds: [] },
+  { name: "Jordan Dickey", role: "Salesforce Admin", primaryRegion: "NA", microsoftEmail: "jordan.dickey@northstarops.test", avatar: "JD", calendarConnected: false, aiMode: "CRM admin assistant and workflow diagnostics", sharedAccess: true, accessibleAccountIds: ["acct-mi", "acct-voltagrid", "acct-meta", "acct-komatsu", "acct-uslubricants", "acct-oilanalyzers", "acct-jglubricants", "acct-chevron", "acct-kubota"] },
+  { name: "D Williams", role: "Customer Experience Tech 2", primaryRegion: "NA", microsoftEmail: "dwilliams@polarislabs.com", avatar: "DW", calendarConnected: true, aiMode: "Customer experience support, dashboard triage, and calendar context", sharedAccess: true, accessibleAccountIds: ["acct-mi", "acct-voltagrid", "acct-meta", "acct-komatsu", "acct-uslubricants", "acct-oilanalyzers", "acct-jglubricants", "acct-chevron", "acct-kubota"] }
+];
+
 function loadSavedPanelLayouts() {
   try {
     const raw = window.localStorage.getItem(PANEL_LAYOUT_STORAGE_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
+  }
+}
+
+function buildAccountsFromSeed(seedAccounts) {
+  return (seedAccounts || []).map((account) =>
+    createAccount(account.id, account.company, account.mask, account.manager, {
+      contactName: account.contactName,
+      contactEmail: account.contactEmail
+    })
+  );
+}
+
+async function loadSeedDirectoryData() {
+  try {
+    const [accountsResponse, usersResponse] = await Promise.all([
+      fetch("/data/accounts.json"),
+      fetch("/data/users.json")
+    ]);
+
+    const accountSeed = accountsResponse.ok ? await accountsResponse.json() : SEEDED_ACCOUNT_DATA;
+    const userSeed = usersResponse.ok ? await usersResponse.json() : SEEDED_LOGIN_DIRECTORY;
+    state.accounts = buildAccountsFromSeed(accountSeed);
+    state.loginDirectory = Array.isArray(userSeed) ? userSeed : SEEDED_LOGIN_DIRECTORY;
+  } catch {
+    state.accounts = buildAccountsFromSeed(SEEDED_ACCOUNT_DATA);
+    state.loginDirectory = [...SEEDED_LOGIN_DIRECTORY];
   }
 }
 
@@ -634,144 +686,8 @@ const state = {
   loginOverlayOpen: false,
   accountFilterQuery: "",
   accountListScroll: 0,
-  accounts: [
-    createAccount("acct-mi", "Motion Industries", "MIPOWR", "Marian Kiley"),
-    createAccount("acct-voltagrid", "Voltagrid", "846164", "Mel Prieve"),
-    createAccount("acct-meta", "Meta", "273187", "Mel Prieve"),
-    createAccount("acct-komatsu", "Komatsu", "KM", "Sade Thomas"),
-    createAccount("acct-uslubricants", "US Lubricants", "USLUBE", "Sasha Dennison"),
-    createAccount("acct-oilanalyzers", "Oil Analyzers", "OILANA", "Sasha Dennison", {
-      contactName: "Ryan Lawry; Zach Austin"
-    }),
-    createAccount("acct-jglubricants", "JG Lubricants", "JGLUBR", "Sasha Dennison", {
-      contactName: "Tom Johnson"
-    }),
-    createAccount("acct-chevron", "Chevron", "LUB", "Sasha Dennison"),
-    createAccount("acct-kubota", "Kubota", "KUBONA", "Prad Marur")
-  ],
-  loginDirectory: [
-    {
-      name: "Marian Kiley",
-      role: "Account Manager",
-      primaryRegion: "NA",
-      microsoftEmail: "marian.kiley@northstarops.test",
-      avatar: "MK",
-      calendarConnected: true,
-      aiMode: "Account insights and AM prep",
-      sharedAccess: true,
-      accessibleAccountIds: ["acct-mi"]
-    },
-    {
-      name: "Curt Watson",
-      role: "Account Manager",
-      primaryRegion: "NA",
-      microsoftEmail: "curt.watson@northstarops.test",
-      avatar: "CW",
-      calendarConnected: true,
-      aiMode: "Whitespace review and follow-up suggestions",
-      sharedAccess: true,
-      accessibleAccountIds: []
-    },
-    {
-      name: "Mel Prieve",
-      role: "Account Manager",
-      primaryRegion: "NA",
-      microsoftEmail: "mel.prieve@northstarops.test",
-      avatar: "MP",
-      calendarConnected: true,
-      aiMode: "Portfolio recap and spend monitoring",
-      sharedAccess: true,
-      accessibleAccountIds: ["acct-voltagrid", "acct-meta"]
-    },
-    {
-      name: "Sasha Dennison",
-      role: "Account Manager",
-      primaryRegion: "NA",
-      microsoftEmail: "sasha.dennison@northstarops.test",
-      avatar: "SD",
-      calendarConnected: true,
-      aiMode: "Renewal planning and customer notes",
-      sharedAccess: true,
-      accessibleAccountIds: ["acct-uslubricants", "acct-oilanalyzers", "acct-jglubricants", "acct-chevron"]
-    },
-    {
-      name: "Prad Marur",
-      role: "Account Manager",
-      primaryRegion: "NA",
-      microsoftEmail: "prad.marur@northstarops.test",
-      avatar: "PM",
-      calendarConnected: true,
-      aiMode: "Opportunity tracking and account planning",
-      sharedAccess: true,
-      accessibleAccountIds: ["acct-kubota"]
-    },
-    {
-      name: "Kelsie Miller",
-      role: "Customer Engagement Manager",
-      primaryRegion: "NA",
-      microsoftEmail: "kelsie.miller@northstarops.test",
-      avatar: "KM",
-      calendarConnected: true,
-      aiMode: "Engagement planning and meeting preparation",
-      sharedAccess: true,
-      accessibleAccountIds: ["acct-mi", "acct-voltagrid", "acct-meta", "acct-komatsu", "acct-uslubricants", "acct-oilanalyzers", "acct-jglubricants", "acct-chevron", "acct-kubota"]
-    },
-    {
-      name: "Sade Thomas",
-      role: "Customer Engagement Specialist",
-      primaryRegion: "NA",
-      microsoftEmail: "sade.thomas@northstarops.test",
-      avatar: "ST",
-      calendarConnected: true,
-      aiMode: "Engagement follow-up and action items",
-      sharedAccess: true,
-      accessibleAccountIds: ["acct-komatsu"]
-    },
-    {
-      name: "Rob Dixon",
-      role: "Sales/Marketing",
-      primaryRegion: "NA",
-      microsoftEmail: "rob.dixon@northstarops.test",
-      avatar: "RD",
-      calendarConnected: true,
-      aiMode: "Campaign coordination and account context",
-      sharedAccess: true,
-      accessibleAccountIds: []
-    },
-    {
-      name: "Sarah DeWolf",
-      role: "Sales/Marketing",
-      primaryRegion: "NA",
-      microsoftEmail: "sarah.dewolf@northstarops.test",
-      avatar: "SD",
-      calendarConnected: true,
-      aiMode: "Pipeline messaging and launch planning",
-      sharedAccess: true,
-      accessibleAccountIds: []
-    },
-    {
-      name: "Jordan Dickey",
-      role: "Salesforce Admin",
-      primaryRegion: "NA",
-      microsoftEmail: "jordan.dickey@northstarops.test",
-      avatar: "JD",
-      calendarConnected: false,
-      aiMode: "CRM admin assistant and workflow diagnostics",
-      sharedAccess: true,
-      accessibleAccountIds: ["acct-mi", "acct-voltagrid", "acct-meta", "acct-komatsu", "acct-uslubricants", "acct-oilanalyzers", "acct-jglubricants", "acct-chevron", "acct-kubota"]
-    },
-    {
-      name: "D Williams",
-      role: "Customer Experience Tech 2",
-      primaryRegion: "NA",
-      microsoftEmail: "dwilliams@polarislabs.com",
-      avatar: "DW",
-      calendarConnected: true,
-      aiMode: "Customer experience support, dashboard triage, and calendar context",
-      sharedAccess: true,
-      accessibleAccountIds: ["acct-mi", "acct-voltagrid", "acct-meta", "acct-komatsu", "acct-uslubricants", "acct-oilanalyzers", "acct-jglubricants", "acct-chevron", "acct-kubota"]
-    }
-  ],
+  accounts: [],
+  loginDirectory: [],
   sharedItems: [
     {
       title: "Revenue",
@@ -5416,6 +5332,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 async function bootstrapApp() {
+  await loadSeedDirectoryData();
   await loadDashboardState();
   state.accounts.forEach((account) => {
     applyImportedComplaintData(account);

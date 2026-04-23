@@ -1,0 +1,11 @@
+[
+  { "id": "acct-mi", "company": "Motion Industries", "mask": "MIPOWR", "manager": "Marian Kiley" },
+  { "id": "acct-voltagrid", "company": "Voltagrid", "mask": "846164", "manager": "Mel Prieve" },
+  { "id": "acct-meta", "company": "Meta", "mask": "273187", "manager": "Mel Prieve" },
+  { "id": "acct-komatsu", "company": "Komatsu", "mask": "KM", "manager": "Sade Thomas" },
+  { "id": "acct-uslubricants", "company": "US Lubricants", "mask": "USLUBE", "manager": "Sasha Dennison" },
+  { "id": "acct-oilanalyzers", "company": "Oil Analyzers", "mask": "OILANA", "manager": "Sasha Dennison", "contactName": "Ryan Lawry; Zach Austin" },
+  { "id": "acct-jglubricants", "company": "JG Lubricants", "mask": "JGLUBR", "manager": "Sasha Dennison", "contactName": "Tom Johnson" },
+  { "id": "acct-chevron", "company": "Chevron", "mask": "LUB", "manager": "Sasha Dennison" },
+  { "id": "acct-kubota", "company": "Kubota", "mask": "KUBONA", "manager": "Prad Marur" }
+]
